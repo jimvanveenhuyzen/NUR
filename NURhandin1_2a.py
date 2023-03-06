@@ -3,12 +3,11 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
-data=np.genfromtxt(os.path.join(sys.path[0],"Vandermonde.txt"),comments='#',dtype=np.float64)
+data=np.genfromtxt(os.path.join(sys.path[0],"Vandermonde.txt"),\
+                   comments='#',dtype=np.float64)
 x=data[:,0]
 y=data[:,1]
 xx=np.linspace(x[0],x[-1],1000) #x values to interpolate at
-
-#2A
 
 V = np.zeros((20,20))
 
@@ -50,12 +49,12 @@ def forward_sub(lower,b):
 
 def backward_sub(upper,y):
     x = np.zeros(y.shape)
-    N_1 = len(x)-1 #define the index N-1, shorter than len(x)-1
+    N_1 = len(x)-1
     x[N_1] = y[N_1] / upper[N_1][N_1]
     for i in range(len(x)-1,-1,-1):
         x[i] = 1/upper[i][i] * y[i]
         for j in range(len(x)-1,-1,-1):
-            if j > i: #ensures you start at j=i+1
+            if j > i:
                 x[i] = x[i] - 1/upper[i][i] * upper[i][j]*x[j]
     return x 
 
@@ -93,5 +92,38 @@ ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
 plt.show()
 
-#2B
+def neville(x,xdata,ydata):
+    n = len(xdata) #order M-1
+    P = np.copy(ydata)
+    for k in range(1,n):
+        for i in range(0,n-k):
+            P[i] = ((xdata[i+k] - x) * P[i] + (x - xdata[i]) * P[i+1]) / (xdata[i+k] - xdata[i])
+    return P[0]
 
+y_interp = np.zeros(len(xx))
+for i in range(len(xx)):
+    y_interp[i] = neville(xx[i],x,y)
+    
+y_diff_b = np.zeros(len(y))
+    
+for i in range(len(y_interp)):
+    if i % 50 == 0:
+        y_diff_b[int(i/50)] = np.abs(y_interp[i] - y[int(i/50)])
+    
+fig,ax=plt.subplots()
+ax.plot(x,y,marker='o',linewidth=0)
+ax.plot(xx,y_interp)
+plt.xlim(-1,101)
+plt.ylim(-400,400)
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
+plt.show()
+
+fig,ax=plt.subplots()
+ax.plot(x,y_diff, label='2a')
+ax.plot(x,y_diff_b, label='2b')
+plt.ylim(0,150)
+ax.set_xlabel('$x$')
+ax.set_ylabel('$|y(x)-y_i|$')
+plt.legend(loc='upper left')
+plt.show()
