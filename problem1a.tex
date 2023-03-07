@@ -4,14 +4,19 @@ In this problem we are asked to write a function that returns the Poisson probab
 
 \lstinputlisting{NURhandin1_1a.py}
 
+Throughout this problem, we are careful to use float32 or int32 values at every step, as we want to use as little memory as possible. Using these data types means we use less bits than the default amount Python would use, thus saving memory. The important part about this problem is to realize that for the larger values of $k$, we get overflow errors when trying to evaluate the Poisson distribution because of the $k!$ factor, which quickly becomes very large for increasing k, too large to store in a 32 bit float for $k$ = 101 for example. To solve this conundrum, we can take the natural log of the Poisson probability distribution instead. This provides us with the exponential values (with base $e$) of the inputs, which are of course much easier to display. Taking exp('values') then gives us the true results we require. For this we use three functions.
 First, we create a function given by:\\
 
 \begin{equation}
-	\ln(k!) = \sum_{i=1}^{n} \ln(i)
+	\ln(k!) = \sum_{i=1}^{k} \ln(i)
 \end{equation}
 
-This returns the natural log of the factorial of an input integer value k, in the data type float32 as instructed in the problem. Note that for input value k = 0, we don't sum at all and return the value 0.0. This translates to ln(1), which is equivalent to ln(0!) = ln(1). Throughout this proble, we are careful to use float32 or int32 values at every step. We know that k must always be an integer, while $\lambda$ must be a float, as it's possible for the mean to have a decimal value. 
+This returns the natural log of the factorial of an input integer value $k$, in the data type float32 as instructed in the problem. Note that for input value $k$ = 0, we don't sum at all and return the value 0.0. This translates to ln(1), which is equivalent to ln(0!) = ln(1). We know that k must always be an integer, while $\lambda$ must be a float, as it is possible for the mean to have a decimal value. Next, we create a function that is found by taking the natural log of the Poisson distribution. This equation is given by:\\
 
-The result of the script is given by:
+\begin{equation}
+	\ln (P_{\lambda}(k)) = \ln(\lambda^k) + \ln(\exp(\-\lambda)) - \ln(k!) = k \ln(\lambda) - \lambda - \ln(k!)
+\end{equation}
+
+As seen in the code, at each step we are careful to apply either float32 or int32 values. For the ln(k!) factor we call upon the previous equation. Finally as explained, we take the exponent of the result of this equation to get the numerical values of the Poisson distrubution for any (valid) input values ($\lambda,k$). The result of this script is given by:
 
 \lstinputlisting{problem1a.txt}
