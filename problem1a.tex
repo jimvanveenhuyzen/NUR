@@ -1,9 +1,17 @@
 \section{Problem 1a}
 
-In this problem we are asked to write a function that returns the Poisson probability distribution for integer k with positive mean $\lambda$. The code I have written 
-
-The file of this exercise is:
+In this problem we are asked to write a function that returns the Poisson probability distribution for integer k with positive mean $\lambda$. The code I have written is as follows: 
 
 \lstinputlisting{NURhandin1_1a.py}
 
+First, we create a function given by:\\
+
+\begin{equation}
+	\ln(k!) = \sum_{i=1}^{n} \ln(i)
+\end{equation}
+
+This returns the natural log of the factorial of an input integer value k, in the data type float32 as instructed in the problem. Note that for input value k = 0, we don't sum at all and return the value 0.0. This translates to ln(1), which is equivalent to ln(0!) = ln(1). Throughout this proble, we are careful to use float32 or int32 values at every step. We know that k must always be an integer, while $\lambda$ must be a float, as it's possible for the mean to have a decimal value. 
+
 The result of the script is given by:
+
+\lstinputlisting{problem1a.txt}
