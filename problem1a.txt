@@ -1,0 +1,5 @@
+The value of poisson(lambda=1,k=0) is 0.36787945
+The value of poisson(lambda=5,k=10) is 0.018132785
+The value of poisson(lambda=3,k=21) is 1.0193408e-11
+The value of poisson(lambda=2.6,k=40) is 3.615122e-33
+The value of poisson(lambda=101,k=200) is 1.2694951e-18
