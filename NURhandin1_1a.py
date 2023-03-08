@@ -1,16 +1,16 @@
 import numpy as np
 
-def ln_factorial(n):
-    value = 0.0
-    for i in range(1,n+1):
-        value += np.float32(np.log(i))
-    return value
+def ln_factorial(k): #compute the natural log of k! for an integer k 
+    value = 0.0 #if k=0, we return 0.0 as 0! = 1 (and ln(1) = 0)
+    for i in range(1,k+1): #k+1 is not included
+        value += np.float32(np.log(i)) #sum values ln(1)+ln(2)+..+ln(k)
+    return value #returns sum of all values of ln(i) within [1,k]
 
 def ln_poisson(lambdas,k):
     return np.int32(k)*np.float32(np.log(lambdas)) - np.float32(lambdas) - \
         np.float32(ln_factorial(k)) #transforming to log space
         
-def poisson(lambdas,k):
+def poisson(lambdas,k): #in this function we take exponents of the ln() values
     return np.float32(np.exp(ln_poisson(lambdas,k)))
 
 print("The value of poisson(lambda=1,k=0) is",poisson(1,0))

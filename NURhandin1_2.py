@@ -45,18 +45,18 @@ def forward_substitution(LU,b): #applies forward sub, slide 11 lecture 3
         y[i] = b[i]
         for j in range(len(y)-1):
             if j < i: 
-                y[i] = y[i] - LU[i][j]*y[j]
+                y[i] = y[i] - LU[i][j]*y[j] #scale solution using row reduction
     return y 
 
 def backward_substitution(LU,y): #applies backward sub
     x = np.zeros(y.shape)
-    N_1 = len(x)-1
-    x[N_1] = y[N_1] / LU[N_1][N_1]
+    N_1 = len(x)-1 #define the largest index 
+    x[N_1] = y[N_1] / LU[N_1][N_1] #take the maximum index of LU 
     for i in range(len(x)-1,-1,-1):
-        x[i] = 1/LU[i][i] * y[i]
+        x[i] = 1/LU[i][i] * y[i] #scale the values 
         for j in range(len(x)-1,-1,-1):
             if j > i:
-                x[i] = x[i] - 1/LU[i][i] * LU[i][j]*x[j]
+                x[i] = x[i] - 1/LU[i][i] * LU[i][j]*x[j] #row reduction
     return x 
 
 def LU(matrix,sol): #combines multiple functions to solve for input A and b. 
@@ -93,7 +93,7 @@ plt.show()
 
 fig,ax=plt.subplots() #plot absolute error as a function of the data 
 ax.scatter(x,y_diff_LU)
-plt.ylim(-0.02,0.4)
+plt.yscale('log') #important: use log plot to see difference 
 ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
 plt.title('2a: absolute error as a function of data x_i')
@@ -157,7 +157,7 @@ plt.show()
 fig,ax=plt.subplots() #compare the error between LU decomp and Neville's algo
 ax.scatter(x,y_diff_LU, label='LU decomp')
 ax.scatter(x,y_diff_neville, label='Neville')
-plt.ylim(-0.02,0.4)
+plt.yscale('log') #log plot 
 ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
 plt.title('2b: comparing abs error of the two methods')
@@ -206,28 +206,18 @@ plt.ylim(-400,400)
 plt.legend()
 ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
-plt.show()
-
-fig,ax=plt.subplots() #plot the data with polynomials from 1 LU and 10 LU iter.
-ax.plot(x,y,marker='o',linewidth=0,label='data',zorder=0)
-ax.plot(xx,y_polynomial,label='1 LU iterations')
-ax.plot(xx,y_polynomial_10it,label='10 LU iterations')
-plt.xlim(80,101)
-plt.ylim(-200,-30)
-plt.legend()
-ax.set_xlabel('$x$')
-ax.set_ylabel('$y$')
+plt.title('2c: comparing y(x) with data for 1 and 10 LU iterations')
 plt.show()
 
 fig,ax=plt.subplots() #plot absolute error compared to data for 1 LU and 10 LU
 ax.scatter(x,y_diff_LU, label='LU (1 iteration)')
 ax.scatter(x,y_diff_LU10it, label='LU (10 iterations)')
-plt.ylim(-0.02,0.4)
+plt.yscale('log')
 ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
 plt.legend(loc='upper left')
+plt.title('2c: comparing abs error of 1 and 10 LU iterations')
 plt.show()
-
 
 #Problem 2D: I remove some earlier comments from the problems for readability
 
@@ -235,7 +225,7 @@ import timeit #import the timeit module to time how fast the code runs
 
 begin_2a = timeit.default_timer() #start timing runtime of problem 2a
 
-for k in range(1): #100 iterations 
+for k in range(300): #use 300 iterations 
     c = LU(V,y)
     y_polynomial = np.zeros(len(xx))
     for i in range(len(y_polynomial)):
@@ -249,12 +239,12 @@ for k in range(1): #100 iterations
            
     y_diff_LU = np.abs(y_LU - y)
     
-averagetime_2a = (timeit.default_timer() - begin_2a)/1
+averagetime_2a = (timeit.default_timer() - begin_2a)/300 #divide by # of iter
 print('The time taken for 2a is:', np.around(averagetime_2a,3), 's')
 
 begin_2b = timeit.default_timer() #start timing runtime of problem 2b
 
-for k in range(1): #10 iterations 
+for k in range(50): #use 50 iterations 
     y_interp = np.zeros(len(xx))
     for i in range(len(xx)):
         y_interp[i] = neville(xx[i],x,y,20)
@@ -266,12 +256,12 @@ for k in range(1): #10 iterations
                                          
     y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
         
-averagetime_2b = (timeit.default_timer() - begin_2b)/1
+averagetime_2b = (timeit.default_timer() - begin_2b)/50 
 print('The time taken for 2b is:', np.around(averagetime_2b,3), 's')
 
 begin_2c = timeit.default_timer()
 
-for k in range(1): #10 iterations
+for k in range(200): #use 200 iterations 
     c_10it = LU_iterations(V,y,10)
     y_polynomial_10it = np.zeros(len(xx))
     for i in range(len(y_polynomial_10it)):
@@ -285,7 +275,7 @@ for k in range(1): #10 iterations
            
     y_diff_LU10it = np.abs(y_LU10it - y)
     
-averagetime_2c = (timeit.default_timer() - begin_2c)/1
+averagetime_2c = (timeit.default_timer() - begin_2c)/200
 print('The time taken for 2c is:', np.around(averagetime_2c,3), 's')
 
 
