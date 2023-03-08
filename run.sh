@@ -10,6 +10,6 @@ python3 NURhandin1_2
 
 echo "Generating the pdf"
 
-pdflatex handin1.tex
+pdflatex handin1_JvV_s2272881.tex
 
 
