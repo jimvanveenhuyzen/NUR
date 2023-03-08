@@ -90,6 +90,8 @@ ax.set_ylabel('$y$')
 plt.title('2a: comparing data with y(x) from LU decomp')
 plt.legend()
 plt.show()
+plt.pause(1)
+plt.close()
 
 fig,ax=plt.subplots() #plot absolute error as a function of the data 
 ax.scatter(x,y_diff_LU)
@@ -98,6 +100,8 @@ ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
 plt.title('2a: absolute error as a function of data x_i')
 plt.show()
+plt.pause(1)
+plt.close()
 
 #Problem 2B
 
@@ -153,6 +157,8 @@ ax.set_ylabel('$y$')
 plt.title('2b: comparing data with y(x) from Neville interpolation')
 plt.legend()
 plt.show()
+plt.pause(1)
+plt.close()
 
 fig,ax=plt.subplots() #compare the error between LU decomp and Neville's algo
 ax.scatter(x,y_diff_LU, label='LU decomp')
@@ -163,6 +169,8 @@ ax.set_ylabel('$|y(x)-y_i|$')
 plt.title('2b: comparing abs error of the two methods')
 plt.legend(loc='upper left')
 plt.show()
+plt.pause(1)
+plt.close()
 
 #Problem 2C
 
@@ -208,6 +216,8 @@ ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
 plt.title('2c: comparing y(x) with data for 1 and 10 LU iterations')
 plt.show()
+plt.pause(1)
+plt.close()
 
 fig,ax=plt.subplots() #plot absolute error compared to data for 1 LU and 10 LU
 ax.scatter(x,y_diff_LU, label='LU (1 iteration)')
@@ -218,6 +228,8 @@ ax.set_ylabel('$|y(x)-y_i|$')
 plt.legend(loc='upper left')
 plt.title('2c: comparing abs error of 1 and 10 LU iterations')
 plt.show()
+plt.pause(1)
+plt.close()
 
 #Problem 2D: I remove some earlier comments from the problems for readability
 
@@ -225,7 +237,7 @@ import timeit #import the timeit module to time how fast the code runs
 
 begin_2a = timeit.default_timer() #start timing runtime of problem 2a
 
-for k in range(300): #use 300 iterations 
+for k in range(50): #use 300 iterations 
     c = LU(V,y)
     y_polynomial = np.zeros(len(xx))
     for i in range(len(y_polynomial)):
@@ -239,12 +251,12 @@ for k in range(300): #use 300 iterations
            
     y_diff_LU = np.abs(y_LU - y)
     
-averagetime_2a = (timeit.default_timer() - begin_2a)/300 #divide by # of iter
+averagetime_2a = (timeit.default_timer() - begin_2a)/50 #divide by # of iter
 print('The time taken for 2a is:', np.around(averagetime_2a,3), 's')
 
 begin_2b = timeit.default_timer() #start timing runtime of problem 2b
 
-for k in range(50): #use 50 iterations 
+for k in range(10): #use 50 iterations 
     y_interp = np.zeros(len(xx))
     for i in range(len(xx)):
         y_interp[i] = neville(xx[i],x,y,20)
@@ -256,12 +268,12 @@ for k in range(50): #use 50 iterations
                                          
     y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
         
-averagetime_2b = (timeit.default_timer() - begin_2b)/50 
+averagetime_2b = (timeit.default_timer() - begin_2b)/10 
 print('The time taken for 2b is:', np.around(averagetime_2b,3), 's')
 
 begin_2c = timeit.default_timer()
 
-for k in range(200): #use 200 iterations 
+for k in range(20): #use 200 iterations 
     c_10it = LU_iterations(V,y,10)
     y_polynomial_10it = np.zeros(len(xx))
     for i in range(len(y_polynomial_10it)):
@@ -275,7 +287,7 @@ for k in range(200): #use 200 iterations
            
     y_diff_LU10it = np.abs(y_LU10it - y)
     
-averagetime_2c = (timeit.default_timer() - begin_2c)/200
+averagetime_2c = (timeit.default_timer() - begin_2c)/20
 print('The time taken for 2c is:', np.around(averagetime_2c,3), 's')
 
 
