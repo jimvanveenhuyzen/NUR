@@ -134,16 +134,17 @@ def neville(x,xdata,ydata,order): #neville: enter x to find interp y
         for i in range(0,M_1-k): #nested loop through P[i]
             P[i] = ((xdata[i+k] - x) * P[i] + (x - xdata[i]) * P[i+1]) \
                 / (xdata[i+k] - xdata[i]) #apply H(x) polynomial 
-    return P[0] #first value should be the interpolated solution
+    dy = np.abs(P[0] - P[1]) #return error estimate of the value
+    return P[0], dy #first value should be the interpolated solution
 
 y_interp = np.zeros(len(xx))
 for i in range(len(xx)): #again interpolate 1000 y values from xx array 
-    y_interp[i] = neville(xx[i],x,y,20) #fill array with interp y values
+    y_interp[i] = neville(xx[i],x,y,20)[0] #fill array with interp y values
     
 y_neville = np.zeros(len(y))
 for i in range(len(y)): #only for the 20 data points to compare LU and Neville
     for j in range(len(c)):
-        y_neville[i] = neville(x[i],x,y,20)
+        y_neville[i] = neville(x[i],x,y,20)[0]
                                      
 y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
 
@@ -237,8 +238,8 @@ import timeit #import the timeit module to time how fast the code runs
 
 begin_2a = timeit.default_timer() #start timing runtime of problem 2a
 
-for k in range(50): #use 300 iterations 
-    c = LU(V,y)
+for k in range(50): #use 50 iterations 
+    c = LU(V,y) #code of 2a starts here 
     y_polynomial = np.zeros(len(xx))
     for i in range(len(y_polynomial)):
         for j in range(len(c)):
@@ -256,15 +257,15 @@ print('The time taken for 2a is:', np.around(averagetime_2a,3), 's')
 
 begin_2b = timeit.default_timer() #start timing runtime of problem 2b
 
-for k in range(10): #use 50 iterations 
-    y_interp = np.zeros(len(xx))
+for k in range(10): #use 10 iterations 
+    y_interp = np.zeros(len(xx)) #code of 2b starts here 
     for i in range(len(xx)):
-        y_interp[i] = neville(xx[i],x,y,20)
+        y_interp[i] = neville(xx[i],x,y,20)[0]
         
     y_neville = np.zeros(len(y))
     for i in range(len(y)): #only for 20 data points to compare LU and Neville
         for j in range(len(c)):
-            y_neville[i] = neville(x[i],x,y,20)
+            y_neville[i] = neville(x[i],x,y,20)[0]
                                          
     y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
         
@@ -273,8 +274,8 @@ print('The time taken for 2b is:', np.around(averagetime_2b,3), 's')
 
 begin_2c = timeit.default_timer()
 
-for k in range(20): #use 200 iterations 
-    c_10it = LU_iterations(V,y,10)
+for k in range(20): #use 20 iterations 
+    c_10it = LU_iterations(V,y,10) #code of 2c starts here 
     y_polynomial_10it = np.zeros(len(xx))
     for i in range(len(y_polynomial_10it)):
         for j in range(len(c_10it)):
@@ -289,5 +290,7 @@ for k in range(20): #use 200 iterations
     
 averagetime_2c = (timeit.default_timer() - begin_2c)/20
 print('The time taken for 2c is:', np.around(averagetime_2c,3), 's')
+
+
 
 
