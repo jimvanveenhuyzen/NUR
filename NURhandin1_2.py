@@ -81,8 +81,8 @@ for i in range(len(y)): #only obtain interp y values for the data x array
 y_diff_LU = np.abs(y_LU - y) #compute the abs difference between LU and data
 
 fig,ax=plt.subplots() #plotting the data vs the Lagrange polynomial from LU
-ax.plot(x,y,marker='o',linewidth=0,label='Data')
-ax.plot(xx,y_polynomial,label='Polynomial (LU)')
+ax.plot(x,y,marker='o',linewidth=0,label='Data',zorder=10)
+ax.plot(xx,y_polynomial,label='Polynomial (LU decomp)',zorder=1)
 plt.xlim(-1,101)
 plt.ylim(-400,400)
 ax.set_xlabel('$x$')
@@ -101,29 +101,51 @@ plt.show()
 
 #Problem 2B
 
-def neville(x,xdata,ydata): #function to run neville's algorithm
-    n = len(xdata) #order we use is M-1, e.g. 20 sample points this is order 19 
-    P = np.copy(ydata)
-    for k in range(1,n):
-        for i in range(0,n-k):
-            P[i] = ((xdata[i+k] - x) * P[i] + (x - xdata[i]) * P[i+1])\
-                / (xdata[i+k] - xdata[i])
-    return P[0] #solution is stored in P[0]: equiv. to interpolated value of y 
+def bisection(x,sample,order): #bisection to find nearest points for x 
+    if x < sample[0]: #extrapolation: if x < smallest sample value, j_low=0
+        return 0 
+    if x > sample[-1]: #extrapolation: if x > largest sample value, j_low=N-2
+        return (len(sample)-1)-order
+    start = 0 #start at the first index 
+    end = len(sample)-1 #end at the last index 
+    size = (end-start)*0.5 #calculate the 'average', or rather middle index
+    while np.abs(start-end) > 1: #while the diff of indices > given error 
+        if x <= sample[int(start+size)]: #if in left half, decrease end index 
+            end = end - size
+        else: #if in right half, increase start index 
+            start = start + size
+        size = (end-start)*0.5 #update for a new middle index 
+    if int(start) - order < 0: #to prevent falling out of range for our order
+        return 0 #if floor(j_low) is smaller than the order, return 0 
+    elif int(start) + order > len(sample)-1: #fall out of range for given order
+        return (len(sample)-1)-order #return (max index-order) if idx too large 
+    return int(start)#return the j_low index
+
+def neville(x,xdata,ydata,order): #neville: enter x to find interp y
+    j_low = bisection(x,xdata,order) #append bisection alg. to find j_low 
+    M_1 = order #we use M-1 orders for the algorithm
+    P = np.copy(ydata[j_low:j_low+M_1]) #range is [j_low,j_low + M-1]
+    xdata = np.copy(xdata[j_low:j_low+M_1]) #get x and y copies for given range
+    for k in range(1,M_1): 
+        for i in range(0,M_1-k): #nested loop through P[i]
+            P[i] = ((xdata[i+k] - x) * P[i] + (x - xdata[i]) * P[i+1]) \
+                / (xdata[i+k] - xdata[i]) #apply H(x) polynomial 
+    return P[0] #first value should be the interpolated solution
 
 y_interp = np.zeros(len(xx))
 for i in range(len(xx)): #again interpolate 1000 y values from xx array 
-    y_interp[i] = neville(xx[i],x,y) #fill array directly with interp y values
+    y_interp[i] = neville(xx[i],x,y,20) #fill array with interp y values
     
 y_neville = np.zeros(len(y))
 for i in range(len(y)): #only for the 20 data points to compare LU and Neville
     for j in range(len(c)):
-        y_neville[i] = neville(x[i],x,y)
+        y_neville[i] = neville(x[i],x,y,20)
                                      
 y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
-    
+
 fig,ax=plt.subplots() #plot the data vs Lagrange polynomial from Neville's algo
-ax.plot(x,y,marker='o',linewidth=0, label='Data')
-ax.plot(xx,y_interp, label='Polynomial (Neville interp)')
+ax.plot(x,y,marker='o',linewidth=0, label='Data',zorder=10)
+ax.plot(xx,y_interp, label='Polynomial (Neville interpolation)',zorder=1)
 plt.xlim(-1,101)
 plt.ylim(-400,400)
 ax.set_xlabel('$x$')
@@ -138,71 +160,66 @@ ax.scatter(x,y_diff_neville, label='Neville')
 plt.ylim(-0.02,0.4)
 ax.set_xlabel('$x$')
 ax.set_ylabel('$|y(x)-y_i|$')
-plt.title('2b: comparing the error of the two methods')
+plt.title('2b: comparing abs error of the two methods')
 plt.legend(loc='upper left')
 plt.show()
 
 #Problem 2C
 
-def matrix_multiplication(A,x):
+def matrix_multiplication(A,x): #function to multiply square matrix with vector
     output = np.zeros(len(A))
     for i in range(len(A)):
         for j in range(len(A)):
             output[j] = output[j] + A[j][i] * x[i]
-    return output
+    return output #matrix A size: NxN, vector x size: Nx1, returns Nx1 solution
 
-def LU_iterations(A,b,number):
+def LU_iterations(A,b,number): #performs multiple iterations of LU decomp
     if number == 0:
         return "No iterations performed"
-    improved_sol = LU(A,b)
-    for i in range(number-1):
-        A_times_x = matrix_multiplication(A,improved_sol)
-        delta_b = A_times_x - b
-        error = LU(A,delta_b)
-        improved_sol = LU(A,b) - error
-    return improved_sol
+    improved_sol = LU(A,b) #first iterations of LU 
+    for i in range(number-1): #for each iteration, find the error and subtract
+        A_times_x = matrix_multiplication(A,improved_sol) #find Ax' = b
+        delta_b = A_times_x - b #delta b = Ax' - b
+        error = LU(A,delta_b) #A delta x = delta b
+        improved_sol = LU(A,b) - error #x" = x' - delta x 
+    return improved_sol #returns x^(number of iterations)
 
-
-A_times_x = matrix_multiplication(V,LU(V,y))
-delta_y = A_times_x - y
-error = LU(V,delta_y)
-#print(c)
-#print(error)
-new_c = LU(V,y) - error
-#print(new_c)
-#print(LU_iterations(V,y,10))
-
-#print(c)
-c_10it = LU_iterations(V,y,10)
-#print(c_10it)
-y_polynomial_10it = np.zeros(len(xx))
-
-for i in range(len(y_polynomial_10it)):
+c_10it = LU_iterations(V,y,10) #find the c values from 10 iterations 
+y_polynomial_10it = np.zeros(len(xx)) 
+for i in range(len(y_polynomial_10it)): #interpolate 1000 values as accordingly
     for j in range(len(c_10it)):
         y_polynomial_10it[i] = y_polynomial_10it[i] + c_10it[j]*(xx[i]**j)
         
 y_LU10it = np.zeros(len(y))
-
-for i in range(len(y)):
+for i in range(len(y)): #interpolate 20 data values to compare with 1 LU decomp
     for j in range(len(c)):
         y_LU10it[i] = y_LU10it[i] + c_10it[j]*(x[i]**j)
        
-y_diff_LU10it = np.abs(y_LU10it - y)
-
-"""
-fig,ax=plt.subplots()
-ax.plot(x,y,marker='o',linewidth=0,label='data')
-ax.plot(xx,y_polynomial,label='1 iter')
-ax.plot(xx,y_polynomial_10it,label='10 iter')
+y_diff_LU10it = np.abs(y_LU10it - y) #find difference 10 LU iter. vs the data 
+ 
+fig,ax=plt.subplots() #plot the data with polynomials from 1 LU and 10 LU iter.
+ax.plot(x,y,marker='o',linewidth=0,label='data',zorder=0)
+ax.plot(xx,y_polynomial,label='1 LU iterations')
+ax.plot(xx,y_polynomial_10it,label='10 LU iterations')
 plt.xlim(-1,101)
 plt.ylim(-400,400)
 plt.legend()
 ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
 plt.show()
-"""
 
-fig,ax=plt.subplots()
+fig,ax=plt.subplots() #plot the data with polynomials from 1 LU and 10 LU iter.
+ax.plot(x,y,marker='o',linewidth=0,label='data',zorder=0)
+ax.plot(xx,y_polynomial,label='1 LU iterations')
+ax.plot(xx,y_polynomial_10it,label='10 LU iterations')
+plt.xlim(80,101)
+plt.ylim(-200,-30)
+plt.legend()
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
+plt.show()
+
+fig,ax=plt.subplots() #plot absolute error compared to data for 1 LU and 10 LU
 ax.scatter(x,y_diff_LU, label='LU (1 iteration)')
 ax.scatter(x,y_diff_LU10it, label='LU (10 iterations)')
 plt.ylim(-0.02,0.4)
@@ -212,13 +229,13 @@ plt.legend(loc='upper left')
 plt.show()
 
 
-#Problem 2D: I remove earlier comments from the problems for readability
+#Problem 2D: I remove some earlier comments from the problems for readability
 
 import timeit #import the timeit module to time how fast the code runs 
 
 begin_2a = timeit.default_timer() #start timing runtime of problem 2a
 
-for k in range(50): #100 iterations 
+for k in range(1): #100 iterations 
     c = LU(V,y)
     y_polynomial = np.zeros(len(xx))
     for i in range(len(y_polynomial)):
@@ -232,29 +249,29 @@ for k in range(50): #100 iterations
            
     y_diff_LU = np.abs(y_LU - y)
     
-averagetime_2a = (timeit.default_timer() - begin_2a)/50
-print('time taken for 2a', averagetime_2a, 's')
+averagetime_2a = (timeit.default_timer() - begin_2a)/1
+print('The time taken for 2a is:', np.around(averagetime_2a,3), 's')
 
 begin_2b = timeit.default_timer() #start timing runtime of problem 2b
 
-for k in range(20): #10 iterations 
+for k in range(1): #10 iterations 
     y_interp = np.zeros(len(xx))
     for i in range(len(xx)):
-        y_interp[i] = neville(xx[i],x,y)
+        y_interp[i] = neville(xx[i],x,y,20)
         
     y_neville = np.zeros(len(y))
-    for i in range(len(y)): #only for the 20 data points to compare LU and Neville
+    for i in range(len(y)): #only for 20 data points to compare LU and Neville
         for j in range(len(c)):
-            y_neville[i] = neville(x[i],x,y)
+            y_neville[i] = neville(x[i],x,y,20)
                                          
     y_diff_neville = np.abs(y_neville - y) #difference Neville interp and data 
         
-averagetime_2b = (timeit.default_timer() - begin_2b)/20
-print('time taken for 2b', averagetime_2b, 's')
+averagetime_2b = (timeit.default_timer() - begin_2b)/1
+print('The time taken for 2b is:', np.around(averagetime_2b,3), 's')
 
 begin_2c = timeit.default_timer()
 
-for k in range(50): #10 iterations
+for k in range(1): #10 iterations
     c_10it = LU_iterations(V,y,10)
     y_polynomial_10it = np.zeros(len(xx))
     for i in range(len(y_polynomial_10it)):
@@ -268,7 +285,7 @@ for k in range(50): #10 iterations
            
     y_diff_LU10it = np.abs(y_LU10it - y)
     
-averagetime_2c = (timeit.default_timer() - begin_2c)/50
-print('time taken for 2c', averagetime_2c, 's')
+averagetime_2c = (timeit.default_timer() - begin_2c)/1
+print('The time taken for 2c is:', np.around(averagetime_2c,3), 's')
 
 
