@@ -1,0 +1,3 @@
+The time taken for 2a is: 0.015 s
+The time taken for 2b is: 0.257 s
+The time taken for 2c is: 0.086 s
